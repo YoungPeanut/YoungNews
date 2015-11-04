@@ -1,2 +1,1 @@
 # YoungNews
-news reader App

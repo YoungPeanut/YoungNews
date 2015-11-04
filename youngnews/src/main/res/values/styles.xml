@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+
+
+    <style name="AppTheme.Base" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+        <item name="colorPrimary">@color/sr_color_primary</item>
+        <item name="colorPrimaryDark">@color/sr_color_primary_dark</item>
+        <item name="colorAccent">@color/sr_color_primary_dark</item>
+
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowContentOverlay">@android:color/transparent</item>
+        <item name="android:windowBackground">@color/sr_color_primary</item>
+    </style>
+
+    <style name="AppTheme" parent="AppTheme.Base"/>
+
+
+    <style name="AppTheme.NoneTranslucent" parent="AppTheme.Base">
+        <item name="android:windowIsTranslucent">false</item>
+    </style>
+
+    <style name="Widget.Young" parent="android:Widget" />
+    <style name="PlaidDarkOverlay" parent="@android:style/ThemeOverlay.Material.Dark.ActionBar">
+    </style>
+
+    <style name="Widget.Young.Toolbar">
+        <item name="android:titleTextAppearance">@android:style/TextAppearance.Material.Widget.ActionBar.Title</item>
+        <item name="android:background">?android:colorPrimary</item>
+        <item name="android:theme">@style/PlaidDarkOverlay</item>
+    </style>
+    <style name="Widget.Young.Toolbar.SmallCapsTitle">
+        <item name="android:titleTextAppearance">@style/TextAppearance.ToolbarTitleSmallCaps</item>
+    </style>
+
+    <style name="Widget.Young.HomeToolbar" parent="Widget.Young.Toolbar.SmallCapsTitle">
+        <item name="android:background">@color/background_dark</item>
+        <item name="android:elevation">0dp</item>
+        <item name="android:theme">@android:style/ThemeOverlay.Material.Dark</item>
+    </style>
+
+
+
+
+    <style name="TextAppearance.ToolbarTitleSmallCaps" parent="@android:style/TextAppearance.Material.Widget.ActionBar.Title">
+        <item name="android:textColor">@color/text_primary_light</item>
+        <item name="android:fontFeatureSettings">smcp</item>
+        <item name="android:letterSpacing">0.2</item>
+    </style>
+
+
+</resources>
