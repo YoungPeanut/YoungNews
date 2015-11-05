@@ -1,5 +1,6 @@
 package info.ipeanut.youngnews.ui;
 
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -119,6 +120,7 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
                         Gson gson = new Gson();
                         NewsAllDataBean newsAllDataBean = gson.fromJson(response, NewsAllDataBean.class);
 //                        Toast.makeText(HomeActivity.this, "success"+newsAllDataBean.data.size(), Toast.LENGTH_SHORT).show();
+                        Snackbar.make(toolbar, "success", Snackbar.LENGTH_LONG).show();
 
 
                         //RV怎么刷新

@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import butterknife.Bind;
+import butterknife.ButterKnife;
 import info.ipeanut.youngnews.R;
 import info.ipeanut.youngnews.YoungNewsApp;
 import info.ipeanut.youngnews.api.NewsAllDataBean;
@@ -33,12 +34,15 @@ public class NewsFragment extends BaseFragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.frag_news,null);
+        ButterKnife.bind(this,view);
+
+
         return view;
     }
 
     @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         if (null != YoungNewsApp.getNewsAllDataBean()
                 && null != YoungNewsApp.getNewsAllDataBean().data){
@@ -48,10 +52,17 @@ public class NewsFragment extends BaseFragment {
                 }
             }
             if (null == dataItem) return;
+            if (null == dataItem.children) return;
         }
 
         viewPager.setAdapter(new NewsVPAdapter(getChildFragmentManager()));
         sliding_tab.setViewPager(viewPager);
+
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
 
     }
@@ -66,7 +77,7 @@ public class NewsFragment extends BaseFragment {
             NewsPageFragment pageFragment = new NewsPageFragment();
 
 
-            return null;
+            return pageFragment;
         }
 
         @Override
@@ -76,7 +87,7 @@ public class NewsFragment extends BaseFragment {
 
         @Override
         public CharSequence getPageTitle(int position) {
-            return super.getPageTitle(position);
+            return dataItem.children.get(position).title;
         }
     }
 
