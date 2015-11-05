@@ -1,4 +1,4 @@
-package info.ipeanut.youngnews.ui.activity;
+package info.ipeanut.youngnews.ui;
 
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
