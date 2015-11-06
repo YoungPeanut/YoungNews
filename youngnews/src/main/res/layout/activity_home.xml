@@ -11,16 +11,10 @@
 
     tools:context=".ui.activity.HomeActivity">
 
-    <FrameLayout
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
-        <FrameLayout
-            android:id="@+id/container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-        </FrameLayout>
         <android.support.v7.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -28,11 +22,20 @@
             android:elevation="1dp"
             android:outlineProvider="none"
             android:title="@string/app_name"
-            style="@style/Widget.Young.HomeToolbar"
+            style="@style/Widget.Young.Toolbar"
 
             />
 
-    </FrameLayout>
+        <FrameLayout
+            android:id="@+id/container"
+            android:layout_width="match_parent"
+            android:layout_height="0px"
+            android:layout_weight="1"
+            >
+
+        </FrameLayout>
+
+    </LinearLayout>
 
     <android.support.v7.widget.RecyclerView
         android:id="@+id/home_rv_end"
