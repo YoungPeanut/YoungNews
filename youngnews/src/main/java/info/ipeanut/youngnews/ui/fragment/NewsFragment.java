@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import butterknife.Bind;
-import butterknife.ButterKnife;
 import info.ipeanut.youngnews.R;
 import info.ipeanut.youngnews.YoungNewsApp;
 import info.ipeanut.youngnews.api.NewsAllDataBean;
@@ -22,7 +21,6 @@ import info.ipeanut.youngnews.ui.widget.SlidingTabLayout;
  * Created by chenshaosina on 15/11/4.
  */
 public class NewsFragment extends BaseFragment {
-    View view;
     NewsAllDataBean.DataItem dataItem;
 
     @Bind(R.id.sliding_tab)
@@ -33,21 +31,20 @@ public class NewsFragment extends BaseFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.frag_news,null);
-        ButterKnife.bind(this,view);
-
+        view = inflater.inflate(R.layout.frag_news, null);
 
         return view;
     }
 
+
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
         if (null != YoungNewsApp.getNewsAllDataBean()
-                && null != YoungNewsApp.getNewsAllDataBean().data){
-            for(NewsAllDataBean.DataItem d : YoungNewsApp.getNewsAllDataBean().data){
-                if (NewsAllDataBean.ID_NEWS == d.id){
+                && null != YoungNewsApp.getNewsAllDataBean().data) {
+            for (NewsAllDataBean.DataItem d : YoungNewsApp.getNewsAllDataBean().data) {
+                if (NewsAllDataBean.ID_NEWS == d.id) {
                     dataItem = d;
                 }
             }
@@ -58,24 +55,18 @@ public class NewsFragment extends BaseFragment {
         viewPager.setAdapter(new NewsVPAdapter(getChildFragmentManager()));
         sliding_tab.setViewPager(viewPager);
 
-    }
-
-    @Override
-    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
-        super.onActivityCreated(savedInstanceState);
-
 
     }
 
-    public class NewsVPAdapter extends FragmentStatePagerAdapter{
+    public class NewsVPAdapter extends FragmentStatePagerAdapter {
         public NewsVPAdapter(FragmentManager fm) {
             super(fm);
         }
 
         @Override
         public Fragment getItem(int position) {
-            NewsPageFragment pageFragment = new NewsPageFragment();
-
+            NewsAllDataBean.Child child = dataItem.children.get(position);
+            NewsPageFragment pageFragment = NewsPageFragment.getInstance(child.id, child.url);
 
             return pageFragment;
         }

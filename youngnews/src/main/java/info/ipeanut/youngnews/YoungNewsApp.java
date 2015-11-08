@@ -12,6 +12,8 @@ import info.ipeanut.youngnews.api.NewsAllDataBean;
  */
 public class YoungNewsApp extends Application {
     public static final String PRE_NEWSALLDATABEAN = "NewsAllDataBean";
+    public static final String KEY_ID = "KEY_ID";
+    public static final String KEY_URL = "KEY_URL";
 
     private static YoungNewsApp app;
     private static RequestQueue requestQueue;
