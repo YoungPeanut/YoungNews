@@ -53,8 +53,15 @@ public class NewsTabFragment extends BaseFragment {
         }
 
         viewPager.setAdapter(new NewsVPAdapter(getChildFragmentManager()));
+        viewPager.setOffscreenPageLimit(viewPager.getAdapter().getCount());
+        viewPager.setPageTransformer(true, new ViewPager.PageTransformer() {
+            @Override
+            public void transformPage(View page, float position) {
+                //正数增长，逆时针旋转
+                page.setRotationY(-position * 30);
+            }
+        });
         sliding_tab.setViewPager(viewPager);
-
 
     }
 

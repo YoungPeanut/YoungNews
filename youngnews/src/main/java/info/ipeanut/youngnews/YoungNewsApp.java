@@ -1,8 +1,12 @@
 package info.ipeanut.youngnews;
 
+import android.app.Activity;
+import android.app.ActivityOptions;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
+import android.os.Bundle;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
@@ -115,5 +119,25 @@ public class YoungNewsApp extends Application {
                     .build();
         }
         return opt;
+    }
+
+    public static void jumpTo(Activity act,Class cls,Bundle arg,ActivityOptions options){
+
+        Intent intent = new Intent();
+        intent.setClass(act, cls);
+        intent.putExtras(arg);
+//                        ActivityOptions options =
+//                                ActivityOptions.makeSceneTransitionAnimation(host,
+//                                        Pair.create(view, host.getString(R.string.transition_shot)),
+//                                        Pair.create(view, host.getString(R.string
+//                                                .transition_shot_background)));
+//                        getActivity().startActivity(intent, options.toBundle());
+        if (null == options){
+
+            act.startActivity(intent);
+        } else {
+
+            act.startActivity(intent,options.toBundle());
+        }
     }
 }

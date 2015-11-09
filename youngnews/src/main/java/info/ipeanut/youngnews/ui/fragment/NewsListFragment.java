@@ -1,6 +1,5 @@
 package info.ipeanut.youngnews.ui.fragment;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -169,16 +168,7 @@ public class NewsListFragment extends BaseFragment {
                 holder.itemView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = new Intent();
-                        intent.setClass(getActivity(), NewsDetailActivity.class);
-                        intent.putExtra(YoungNewsApp.KEY_URL, topnews.get(position).url);
-//                        ActivityOptions options =
-//                                ActivityOptions.makeSceneTransitionAnimation(host,
-//                                        Pair.create(view, host.getString(R.string.transition_shot)),
-//                                        Pair.create(view, host.getString(R.string
-//                                                .transition_shot_background)));
-//                        getActivity().startActivity(intent, options.toBundle());
-                        getActivity().startActivity(intent);
+                        toNewsDetail(topnews.get(position).url);
                     }
                 });
 
@@ -186,8 +176,20 @@ public class NewsListFragment extends BaseFragment {
 
                 ((VH)holder).title.setText(news.get(position).title);
                 ((VH)holder).time.setText(news.get(position).pubdate);
+                holder.itemView.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        toNewsDetail(news.get(position).url);
+                    }
+                });
 
             }
+        }
+        void toNewsDetail(String url){
+
+            Bundle arg = new Bundle();
+            arg.putString(YoungNewsApp.KEY_URL,url);
+            YoungNewsApp.jumpTo(getActivity(),NewsDetailActivity.class,arg,null);
         }
 
         @Override
