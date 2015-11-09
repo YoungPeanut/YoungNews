@@ -1,9 +1,22 @@
 package info.ipeanut.youngnews;
 
 import android.app.Application;
+import android.content.Context;
+import android.graphics.Bitmap;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
+import com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiskCache;
+import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
+import com.nostra13.universalimageloader.cache.memory.impl.WeakMemoryCache;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.assist.ImageScaleType;
+import com.nostra13.universalimageloader.core.assist.QueueProcessingType;
+import com.nostra13.universalimageloader.utils.StorageUtils;
+
+import java.io.File;
 
 import info.ipeanut.youngnews.api.NewsAllDataBean;
 
@@ -15,9 +28,13 @@ public class YoungNewsApp extends Application {
     public static final String KEY_ID = "KEY_ID";
     public static final String KEY_URL = "KEY_URL";
 
+
+    public static final String PATH_IMG = "images" + File.separatorChar  + "imageCache" ;
+
     private static YoungNewsApp app;
     private static RequestQueue requestQueue;
     private static NewsAllDataBean newsAllDataBean;
+    private static DisplayImageOptions opt;
 
     @Override
     public void onCreate() {
@@ -26,6 +43,40 @@ public class YoungNewsApp extends Application {
         app = this;
         requestQueue = Volley.newRequestQueue(this);
 
+        initImageLoader(getApplicationContext());
+
+        opt = new  DisplayImageOptions.Builder()
+                .cacheInMemory(true)
+                .bitmapConfig(Bitmap.Config.RGB_565)
+                .cacheOnDisk(true)
+                .imageScaleType(ImageScaleType.EXACTLY)
+//                .showImageForEmptyUri(getResources().getDrawable(R.drawable.ic_item_news_load))
+//                .showImageOnFail(getResources().getDrawable(R.drawable.ic_item_news_load))
+                .build();
+    }
+
+    private static void initImageLoader(Context context) {
+
+        File cacheDir = StorageUtils.getOwnCacheDirectory(app,PATH_IMG);
+        DisplayImageOptions options = new DisplayImageOptions.Builder()
+                .cacheInMemory(true).cacheOnDisk(true)
+                .resetViewBeforeLoading(true)
+                        // .displayer(new FadeInBitmapDisplayer(500))
+                .imageScaleType(ImageScaleType.EXACTLY).build();
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(
+                context).threadPriority(Thread.NORM_PRIORITY - 2)
+                .threadPoolSize(3)
+                .denyCacheImageMultipleSizesInMemory()
+                .memoryCache(new WeakMemoryCache())
+                        // default
+                .diskCache(new UnlimitedDiskCache(cacheDir))
+                .diskCacheSize(50 * 1024 * 1024).diskCacheFileCount(100)
+                .diskCacheFileNameGenerator(new Md5FileNameGenerator())
+                .tasksProcessingOrder(QueueProcessingType.LIFO)
+                        // .writeDebugLogs() // Remove for release app
+                .defaultDisplayImageOptions(options).build();
+        // Initialize ImageLoader with configuration.
+        ImageLoader.getInstance().init(config);
     }
 
 
@@ -50,5 +101,19 @@ public class YoungNewsApp extends Application {
 
     public static void setNewsAllDataBean(NewsAllDataBean newsAllDataBean) {
         YoungNewsApp.newsAllDataBean = newsAllDataBean;
+    }
+
+    public static DisplayImageOptions getOpt() {
+        if (null == opt){
+            opt = new  DisplayImageOptions.Builder()
+                    .cacheInMemory(true)
+                    .bitmapConfig(Bitmap.Config.RGB_565)
+                    .cacheOnDisk(true)
+                    .imageScaleType(ImageScaleType.EXACTLY)
+//                .showImageForEmptyUri(getResources().getDrawable(R.drawable.ic_item_news_load))
+//                .showImageOnFail(getResources().getDrawable(R.drawable.ic_item_news_load))
+                    .build();
+        }
+        return opt;
     }
 }

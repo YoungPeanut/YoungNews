@@ -22,10 +22,11 @@ import info.ipeanut.youngnews.R;
 import info.ipeanut.youngnews.YoungNewsApp;
 import info.ipeanut.youngnews.api.ApiConstants;
 import info.ipeanut.youngnews.api.NewsAllDataBean;
+import info.ipeanut.youngnews.ui.adapter.HomeRvendAdapter;
 import info.ipeanut.youngnews.ui.base.BaseActivity;
 import info.ipeanut.youngnews.ui.fragment.AlbumFragment;
 import info.ipeanut.youngnews.ui.fragment.InteractionFragment;
-import info.ipeanut.youngnews.ui.fragment.NewsFragment;
+import info.ipeanut.youngnews.ui.fragment.NewsTabFragment;
 import info.ipeanut.youngnews.ui.fragment.TopicFragment;
 import info.ipeanut.youngnews.ui.fragment.VoteFragment;
 import info.ipeanut.youngnews.utils.PreferenceUtils;
@@ -43,7 +44,7 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
     Toolbar toolbar;
 
     HomeRvendAdapter homeRvendAdapter;
-    NewsFragment newsFragment;
+    NewsTabFragment newsTabFragment;
     TopicFragment topicFragment;
     AlbumFragment albumFragment;
     InteractionFragment interactionFragment;
@@ -131,7 +132,7 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
                         YoungNewsApp.setNewsAllDataBean(newsAllDataBean);
                         PreferenceUtils.setPrefString(HomeActivity.this, YoungNewsApp.PRE_NEWSALLDATABEAN, response);
 
-                        showFragment(newsFragment, NewsFragment.class);
+                        showFragment(newsTabFragment, NewsTabFragment.class);
 
 
 
@@ -165,7 +166,7 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
         }
         switch (id){
             case NewsAllDataBean.ID_NEWS:
-                showFragment(newsFragment,NewsFragment.class);
+                showFragment(newsTabFragment,NewsTabFragment.class);
 
                 break;
             case NewsAllDataBean.ID_TOPIC:

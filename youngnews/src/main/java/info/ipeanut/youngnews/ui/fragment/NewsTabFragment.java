@@ -20,7 +20,7 @@ import info.ipeanut.youngnews.ui.widget.SlidingTabLayout;
 /**
  * Created by chenshaosina on 15/11/4.
  */
-public class NewsFragment extends BaseFragment {
+public class NewsTabFragment extends BaseFragment {
     NewsAllDataBean.DataItem dataItem;
 
     @Bind(R.id.sliding_tab)
@@ -66,7 +66,7 @@ public class NewsFragment extends BaseFragment {
         @Override
         public Fragment getItem(int position) {
             NewsAllDataBean.Child child = dataItem.children.get(position);
-            NewsPageFragment pageFragment = NewsPageFragment.getInstance(child.id, child.url);
+            NewsListFragment pageFragment = NewsListFragment.getInstance(child.id, child.url);
 
             return pageFragment;
         }
