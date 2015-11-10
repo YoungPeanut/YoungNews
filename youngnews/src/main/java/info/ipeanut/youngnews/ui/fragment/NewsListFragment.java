@@ -9,8 +9,6 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.android.volley.NetworkResponse;
@@ -19,7 +17,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
-import com.nostra13.universalimageloader.core.ImageLoader;
 
 import java.util.ArrayList;
 
@@ -27,8 +24,10 @@ import butterknife.Bind;
 import info.ipeanut.youngnews.R;
 import info.ipeanut.youngnews.YoungNewsApp;
 import info.ipeanut.youngnews.api.NewsPageBean;
-import info.ipeanut.youngnews.ui.NewsDetailActivity;
+import info.ipeanut.youngnews.ui.adapter.LoadmoreScrollListener;
+import info.ipeanut.youngnews.ui.adapter.NewsItemAdapter;
 import info.ipeanut.youngnews.ui.base.BaseFragment;
+import info.ipeanut.youngnews.utils.PreferenceUtils;
 
 /**
  * bug:
@@ -46,6 +45,7 @@ import info.ipeanut.youngnews.ui.base.BaseFragment;
  * -把recyclerview做成Grid的样式，第一行放两个top news，别的行放一个http://bbs.csdn.net/topics/391073373
  * http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0722/3214.html
  * 8 recyclerview分割线  http://segmentfault.com/q/1010000003942010
+ * 9 数据统计
  * Created by chenshao on 15/11/5.
  */
 public class NewsListFragment extends BaseFragment {
@@ -55,7 +55,14 @@ public class NewsListFragment extends BaseFragment {
     RecyclerView recyclerview;
     @Bind(R.id.swipe_refresh)
     SwipeRefreshLayout swipe_refresh;
+    StringRequest request;
+    Gson gson;
+    GridLayoutManager layoutManager;
 
+    private  ArrayList<NewsPageBean.NewsItem> newsList;
+    private  ArrayList<NewsPageBean.TopNewsItem> topnewsList;
+    NewsItemAdapter adapter;
+    NewsPageBean newsPageBean;
     public static NewsListFragment getInstance(int id, String url) {
 
         Bundle arg = new Bundle();
@@ -83,40 +90,107 @@ public class NewsListFragment extends BaseFragment {
             if (TextUtils.isEmpty(url)) {
                 return;
             }
-//            Snackbar.make(view,id+"--",Snackbar.LENGTH_SHORT).show();
         }
-//        recyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
-        //请求url
-        StringRequest request = new StringRequest(Request.Method.GET, url,
+        gson = new Gson();
+
+        preInitData();
+        initData(true,url);
+    }
+
+    private void preInitData() {
+        layoutManager = new GridLayoutManager(getActivity(), 2);
+        recyclerview.setLayoutManager(layoutManager);
+        newsList = new ArrayList<>();
+        topnewsList = new ArrayList<>();
+        adapter = new NewsItemAdapter(getActivity(),newsList,topnewsList);
+        recyclerview.setAdapter(adapter);
+        recyclerview.addOnScrollListener(new LoadmoreScrollListener(layoutManager) {
+            @Override
+            public void onLoadmore() {
+                Toast.makeText(getActivity(), "lllalalalala", Toast.LENGTH_SHORT).show();
+                if (newsPageBean != null && !TextUtils.isEmpty(newsPageBean.data.more)) {
+                    initData(false, newsPageBean.data.more);
+                } else {
+                    Toast.makeText(getActivity(), "没有更多了", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+
+        swipe_refresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                initData(true, url);
+            }
+        });
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (null != request && !request.isCanceled()) request.cancel();
+        super.onDestroyView();
+    }
+
+    void handleResponse(String res,boolean isRefresh){
+
+        newsPageBean = gson.fromJson(res, NewsPageBean.class);
+        if (null != newsPageBean && null != newsPageBean.data){
+
+            layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                @Override
+                public int getSpanSize(int position) {
+                    if (null == newsPageBean.data.topnews || position > newsPageBean.data.topnews.size() - 1) {
+                        return 2;
+                    }
+                    return 1;
+                }
+            });
+            if (isRefresh){
+                newsList.clear();topnewsList.clear();
+            }
+            newsList.addAll(newsPageBean.data.news);
+            topnewsList.addAll(newsPageBean.data.topnews == null
+                    ? new ArrayList<NewsPageBean.TopNewsItem>() : newsPageBean.data.topnews);
+            adapter.notifyDataSetChanged();
+        }
+
+    }
+    private void initData(final boolean isRefresh, final String urll) {
+
+        final String cache = PreferenceUtils.getPrefString(getActivity(),urll,"");
+        if (!TextUtils.isEmpty(cache)){
+            handleResponse(cache, isRefresh);
+        }
+        if (null != request && !request.isCanceled()) request.cancel();
+        if (isRefresh) {
+            swipe_refresh.setRefreshing(true);
+        } else {
+            adapter.isLoadingMore = true;
+        }
+        request = new StringRequest(Request.Method.GET, urll,
                 new Response.Listener<String>() {
 
                     @Override
                     public void onResponse(String response) {
-                        Toast.makeText(getActivity(), "succc", Toast.LENGTH_SHORT).show();
-                        if (!TextUtils.isEmpty(response)) {
-                            Gson gson = new Gson();
-                            final NewsPageBean newsPageBean = gson.fromJson(response, NewsPageBean.class);
+                        swipe_refresh.setRefreshing(false);
+                        adapter.isLoadingMore = false;
 
-                            recyclerview.setAdapter(new NewsItemAdapter( newsPageBean.data.news, newsPageBean.data.topnews));
-                            GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 2);
-                            layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-                                @Override
-                                public int getSpanSize(int position) {
-                                    if (position > newsPageBean.data.topnews.size()-1) {
-                                        return 2;
-                                    }
-                                    return 1;
-                                }
-                            });
-                            recyclerview.setLayoutManager(layoutManager);
-
+                        if (isRefresh){
+                            recyclerview.smoothScrollToPosition(0);
+                        }
+                        if (!TextUtils.isEmpty(response) && !response.equals(cache)) {
+                            PreferenceUtils.setPrefString(getActivity(), urll, response);
+                            handleResponse(response,isRefresh);
                         }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(getActivity(), "errr", Toast.LENGTH_SHORT).show();
+                        swipe_refresh.setRefreshing(false);
+                        adapter.isLoadingMore = false;
+
+                        Toast.makeText(getActivity(), "请求数据失败-news", Toast.LENGTH_SHORT).show();
 
                     }
                 }
@@ -130,94 +204,5 @@ public class NewsListFragment extends BaseFragment {
 
         YoungNewsApp.getRequestQueue().add(request);
 
-    }
-
-    public class NewsItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-        private final ArrayList<NewsPageBean.NewsItem> news;
-        private final ArrayList<NewsPageBean.TopNewsItem> topnews;
-
-        public NewsItemAdapter(@Nullable ArrayList<NewsPageBean.NewsItem> news
-                , @Nullable ArrayList<NewsPageBean.TopNewsItem> topnews) {
-            this.news = news;
-            this.topnews = topnews;
-        }
-
-        @Override
-        public int getItemViewType(int position) {
-            if (position > topnews.size()-1) {
-                return 2;
-            }
-            return 1;
-        }
-
-        @Override
-        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            if (1 == viewType){
-                return new VHtop(LayoutInflater.from(parent.getContext()).inflate(R.layout.adapter_newsitem_top, null));
-
-            }
-            return new VH(LayoutInflater.from(parent.getContext()).inflate(R.layout.adapter_newsitem, null));
-        }
-
-        @Override
-        public void onBindViewHolder(RecyclerView.ViewHolder holder, final int position) {
-            if (1 == getItemViewType(position)){
-                ((VHtop)holder).tv_top.setText(topnews.get(position).title);
-                ImageLoader.getInstance().displayImage(topnews.get(position).topimage
-                        , ((VHtop) holder).iv_top, YoungNewsApp.getOpt());
-                holder.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        toNewsDetail(topnews.get(position).url);
-                    }
-                });
-
-            } else if (2 == getItemViewType(position)){
-
-                ((VH)holder).title.setText(news.get(position).title);
-                ((VH)holder).time.setText(news.get(position).pubdate);
-                holder.itemView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        toNewsDetail(news.get(position).url);
-                    }
-                });
-
-            }
-        }
-        void toNewsDetail(String url){
-
-            Bundle arg = new Bundle();
-            arg.putString(YoungNewsApp.KEY_URL,url);
-            YoungNewsApp.jumpTo(getActivity(),NewsDetailActivity.class,arg,null);
-        }
-
-        @Override
-        public int getItemCount() {
-            return topnews.size() + news.size() ;
-        }
-
-        public class VH extends RecyclerView.ViewHolder {
-
-            TextView title;
-            TextView time;
-
-            public VH(View itemView) {
-                super(itemView);
-                title = (TextView) itemView.findViewById(R.id.title);
-                time = (TextView) itemView.findViewById(R.id.time);
-            }
-        }
-        public class VHtop extends RecyclerView.ViewHolder {
-
-            ImageView iv_top;
-            TextView tv_top;
-
-            public VHtop(View itemView) {
-                super(itemView);
-                iv_top = (ImageView) itemView.findViewById(R.id.iv_top);
-                tv_top = (TextView) itemView.findViewById(R.id.tv_top);
-            }
-        }
     }
 }

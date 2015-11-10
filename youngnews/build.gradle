@@ -17,6 +17,12 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+//
+//    compileOptions {
+//        sourceCompatibility JavaVersion.VERSION_1_8
+//        targetCompatibility JavaVersion.VERSION_1_8
+//    }
+
 }
 
 repositories {
@@ -24,7 +30,7 @@ repositories {
 }
 
 ext {
-    supportLibVersion = '22.2.0'
+    supportLibVersion = '22.2.1'
 }
 
 dependencies {

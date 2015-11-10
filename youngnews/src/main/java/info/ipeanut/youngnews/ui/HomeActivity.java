@@ -1,14 +1,15 @@
 package info.ipeanut.youngnews.ui;
 
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -16,6 +17,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import info.ipeanut.youngnews.R;
@@ -42,6 +46,8 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
     RecyclerView home_rv_end;
     @Bind(R.id.toolbar)
     Toolbar toolbar;
+    @Bind(android.R.id.empty)
+    ProgressBar empty;
 
     HomeRvendAdapter homeRvendAdapter;
     NewsTabFragment newsTabFragment;
@@ -49,6 +55,9 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
     AlbumFragment albumFragment;
     InteractionFragment interactionFragment;
     VoteFragment voteFragment;
+    private List<NewsAllDataBean.DataItem> drawData;
+    Gson gson;
+    StringRequest request;
 
     @Override
     protected int getContentViewLayoutID() {
@@ -59,7 +68,7 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
     protected void initViewsAndEvents() {
 
         initViews();
-        initData();
+        initData(true);
     }
 
     private void initViews() {
@@ -68,85 +77,92 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
         home_drawer.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        // drawer layout treats fitsSystemWindows specially so we have to handle insets ourselves
-        // 或者在xml中 android:clipToPadding="false"    android:fitsSystemWindows="true"
-//        home_drawer.setOnApplyWindowInsetsListener(new View.OnApplyWindowInsetsListener() {
-//            @Override
-//            public WindowInsets onApplyWindowInsets(View v, WindowInsets insets) {
-//                // inset the toolbar down by the status bar height
-//                ViewGroup.MarginLayoutParams lpToolbar = (ViewGroup.MarginLayoutParams) toolbar
-//                        .getLayoutParams();
-//                lpToolbar.topMargin += insets.getSystemWindowInsetTop();
-//                lpToolbar.rightMargin += insets.getSystemWindowInsetRight();
-//                toolbar.setLayoutParams(lpToolbar);
-//
-//                // clear this listener so insets aren't re-applied
-//                home_drawer.setOnApplyWindowInsetsListener(null);
-//
-//                return insets.consumeSystemWindowInsets();
-//            }
-//        });
 
-        //null
-//        home_rv_end.setAdapter(homeRvendAdapter);
+        drawData = new ArrayList<>();
+        homeRvendAdapter = new HomeRvendAdapter(HomeActivity.this, drawData);
+        homeRvendAdapter.setOnSelectedItemChangedListener(HomeActivity.this);
         home_rv_end.setLayoutManager(new LinearLayoutManager(HomeActivity.this));
+        home_rv_end.setAdapter(homeRvendAdapter);
+        gson = new Gson();
+
+    }
+
+    @Override
+    protected void onDestroy() {
+
+        if (request != null && !request.isCanceled())
+            request.cancel();
+        super.onDestroy();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
 
-        getMenuInflater().inflate(R.menu.menu_home,menu);
+        getMenuInflater().inflate(R.menu.menu_home, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        switch (item.getItemId()){
+        switch (item.getItemId()) {
             case R.id.menu_filter:
                 home_drawer.openDrawer(home_rv_end);
-//                home_drawer.openDrawer(GravityCompat.END);
                 break;
         }
         return super.onOptionsItemSelected(item);
     }
 
-    private void initData() {
+    void handleResponse(String response) {
 
-        StringRequest request = new StringRequest(Request.Method.GET, ApiConstants.Urls.URL_NEWS_ALL_DATA,
+        empty.setVisibility(View.GONE);
+        NewsAllDataBean newsAllDataBean = gson.fromJson(response, NewsAllDataBean.class);
+        drawData.clear();
+        drawData.addAll(newsAllDataBean.data);
+        homeRvendAdapter.notifyDataSetChanged();
+
+        YoungNewsApp.setNewsAllDataBean(newsAllDataBean);
+    }
+
+    private void initData(final boolean needRetry) {
+        final String cache = PreferenceUtils.getPrefString(HomeActivity.this, YoungNewsApp.PRE_NEWSALLDATABEAN, "");
+        if (!TextUtils.isEmpty(cache)) {
+            handleResponse(cache);
+            showFragment(newsTabFragment, NewsTabFragment.class);
+        }
+
+        if (request != null && !request.isCanceled()) request.cancel();
+        request = new StringRequest(Request.Method.GET, ApiConstants.Urls.URL_NEWS_ALL_DATA,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
 
-                        Gson gson = new Gson();
-                        NewsAllDataBean newsAllDataBean = gson.fromJson(response, NewsAllDataBean.class);
-//                        Toast.makeText(HomeActivity.this, "success"+newsAllDataBean.data.size(), Toast.LENGTH_SHORT).show();
-                        Snackbar.make(toolbar, "success", Snackbar.LENGTH_LONG).show();
+                        if (!TextUtils.isEmpty(response)) {
+                            if (!response.equals(cache)) {
 
-
-                        //RV怎么刷新
-                        homeRvendAdapter = new HomeRvendAdapter(HomeActivity.this,newsAllDataBean.data);
-                        homeRvendAdapter.setOnSelectedItemChangedListener(HomeActivity.this);
-                        home_rv_end.setAdapter(homeRvendAdapter);
-
-                        YoungNewsApp.setNewsAllDataBean(newsAllDataBean);
-                        PreferenceUtils.setPrefString(HomeActivity.this, YoungNewsApp.PRE_NEWSALLDATABEAN, response);
-
-                        showFragment(newsTabFragment, NewsTabFragment.class);
-
-
-
+                                handleResponse(response);
+                                PreferenceUtils.setPrefString(HomeActivity.this, YoungNewsApp.PRE_NEWSALLDATABEAN, response);
+                            }
+                        } else {
+                            if (needRetry) {
+                                initData(false);
+                            }
+                            //first use && request failed
+                            if (TextUtils.isEmpty(cache)) {
+                            }
+                        }
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Toast.makeText(HomeActivity.this, "failed", Toast.LENGTH_SHORT).show();
-
+                        Toast.makeText(HomeActivity.this, "请求数据失败-home", Toast.LENGTH_SHORT).show();
+                        if (needRetry) {
+                            initData(false);
+                        }
                     }
                 }
         );
-
         YoungNewsApp.getRequestQueue().add(request);
     }
 
@@ -156,33 +172,33 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
         home_drawer.closeDrawer(home_rv_end);
     }
 
-    public void handleFragment(int id){
+    public void handleFragment(int id) {
         if (null != getSupportFragmentManager().getFragments()
-                && getSupportFragmentManager().getFragments().size() > 0){
-            for(Fragment f:getSupportFragmentManager().getFragments()){
+                && getSupportFragmentManager().getFragments().size() > 0) {
+            for (Fragment f : getSupportFragmentManager().getFragments()) {
                 getSupportFragmentManager().beginTransaction()
                         .hide(f).commitAllowingStateLoss();
             }
         }
-        switch (id){
+        switch (id) {
             case NewsAllDataBean.ID_NEWS:
-                showFragment(newsTabFragment,NewsTabFragment.class);
+                showFragment(newsTabFragment, NewsTabFragment.class);
 
                 break;
             case NewsAllDataBean.ID_TOPIC:
-                showFragment(topicFragment,TopicFragment.class);
+                showFragment(topicFragment, TopicFragment.class);
 
                 break;
             case NewsAllDataBean.ID_ALBUM:
-                showFragment(albumFragment,AlbumFragment.class);
+                showFragment(albumFragment, AlbumFragment.class);
 
                 break;
             case NewsAllDataBean.ID_INTERACTION:
-                showFragment(interactionFragment,InteractionFragment.class);
+                showFragment(interactionFragment, InteractionFragment.class);
 
                 break;
             case NewsAllDataBean.ID_VOTE:
-                showFragment(voteFragment,VoteFragment.class);
+                showFragment(voteFragment, VoteFragment.class);
 
                 break;
         }
@@ -191,14 +207,15 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
 
     /**
      * 我都把f给你了，你竟然不知道f的classname，我还得传个类型
+     *
      * @param f
      */
-    public void showFragment(Fragment f,Class cls){
+    public void showFragment(Fragment f, Class cls) {
 
-        if (null == f){
-            f = Fragment.instantiate(this,cls.getName());
+        if (null == f) {
+            f = Fragment.instantiate(this, cls.getName());
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container,f,cls.getSimpleName())
+                    .add(R.id.container, f, cls.getSimpleName())
                     .commitAllowingStateLoss();
         } else {
             getSupportFragmentManager().beginTransaction()
