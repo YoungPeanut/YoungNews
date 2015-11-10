@@ -30,22 +30,27 @@ import info.ipeanut.youngnews.ui.base.BaseFragment;
 import info.ipeanut.youngnews.utils.PreferenceUtils;
 
 /**
- * bug:
+ * todo:
  * 1 fragment被回收的时候，getActivity() 为空
  * 2 页面数据请求与homeActivity的请求集中在一起，容易请求失败
  * 3 homeActivity请求失败的友好提示，重新请求
  * 4 页面的重新请求
  * 5 json数据的缓存
- * 6 android.support.v7.widget.CardView
- * 7 上面top news的解决方案：（因为topnews和news要一块滑动）
+ * 6 android.support.v7.widget.CardView===============
+ * 7 top news的解决方案：（因为topnews和news要一块滑动）
  * －recyclerview的header   http://www.tuicool.com/articles/mauMziR
  * http://stackoverflow.com/questions/26530685/is-there-an-addheaderview-equivalent-for-recyclerview/26573338#26573338
  * －recyclerview的item，内嵌viewpager
  * －viewpager与recyclerview并列，放在scrollView中
  * -把recyclerview做成Grid的样式，第一行放两个top news，别的行放一个http://bbs.csdn.net/topics/391073373
  * http://www.jcodecraeer.com/a/anzhuokaifa/androidkaifa/2015/0722/3214.html
- * 8 recyclerview分割线  http://segmentfault.com/q/1010000003942010
- * 9 数据统计
+ * 8 recyclerview分割线  http://segmentfault.com/q/1010000003942010     ==============
+ * 9 数据统计     ============
+ * 10 飞行模式下用缓存测试，导航条会错位   ==========
+ * 11 drawer页
+ * 12 页面跳转 过渡动画
+ * 13 真机 第一次打开App总是请求失败
+ * 14 webviewloading进度条
  * Created by chenshao on 15/11/5.
  */
 public class NewsListFragment extends BaseFragment {
@@ -63,6 +68,7 @@ public class NewsListFragment extends BaseFragment {
     private  ArrayList<NewsPageBean.TopNewsItem> topnewsList;
     NewsItemAdapter adapter;
     NewsPageBean newsPageBean;
+    int topnewsCount = 0;
     public static NewsListFragment getInstance(int id, String url) {
 
         Bundle arg = new Bundle();
@@ -107,7 +113,6 @@ public class NewsListFragment extends BaseFragment {
         recyclerview.addOnScrollListener(new LoadmoreScrollListener(layoutManager) {
             @Override
             public void onLoadmore() {
-                Toast.makeText(getActivity(), "lllalalalala", Toast.LENGTH_SHORT).show();
                 if (newsPageBean != null && !TextUtils.isEmpty(newsPageBean.data.more)) {
                     initData(false, newsPageBean.data.more);
                 } else {
@@ -136,17 +141,20 @@ public class NewsListFragment extends BaseFragment {
         newsPageBean = gson.fromJson(res, NewsPageBean.class);
         if (null != newsPageBean && null != newsPageBean.data){
 
-            layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
-                @Override
-                public int getSpanSize(int position) {
-                    if (null == newsPageBean.data.topnews || position > newsPageBean.data.topnews.size() - 1) {
-                        return 2;
-                    }
-                    return 1;
-                }
-            });
             if (isRefresh){
                 newsList.clear();topnewsList.clear();
+                if (newsPageBean.data.topnews != null){
+                    topnewsCount = newsPageBean.data.topnews.size();
+                    layoutManager.setSpanSizeLookup(new GridLayoutManager.SpanSizeLookup() {
+                        @Override
+                        public int getSpanSize(int position) {
+                            if ( position > topnewsCount - 1) {
+                                return 2;
+                            }
+                            return 1;
+                        }
+                    });
+                }
             }
             newsList.addAll(newsPageBean.data.news);
             topnewsList.addAll(newsPageBean.data.topnews == null
@@ -190,7 +198,7 @@ public class NewsListFragment extends BaseFragment {
                         swipe_refresh.setRefreshing(false);
                         adapter.isLoadingMore = false;
 
-                        Toast.makeText(getActivity(), "请求数据失败-news", Toast.LENGTH_SHORT).show();
+                        YoungNewsApp.showToast("请求数据失败-news");
 
                     }
                 }

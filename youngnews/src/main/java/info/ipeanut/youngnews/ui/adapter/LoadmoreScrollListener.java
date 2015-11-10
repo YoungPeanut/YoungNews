@@ -8,7 +8,7 @@ import android.support.v7.widget.RecyclerView;
  */
 public abstract class LoadmoreScrollListener extends RecyclerView.OnScrollListener {
     private final GridLayoutManager layoutManager;
-    private final int TOLOAD = 2;
+    private final int TOLOAD = 1;
 
     public LoadmoreScrollListener(GridLayoutManager layoutManager) {
         this.layoutManager = layoutManager;

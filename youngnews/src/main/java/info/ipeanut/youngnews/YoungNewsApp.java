@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
@@ -39,6 +40,7 @@ public class YoungNewsApp extends Application {
     private static RequestQueue requestQueue;
     private static NewsAllDataBean newsAllDataBean;
     private static DisplayImageOptions opt;
+    private static Toast toast ;
 
     @Override
     public void onCreate() {
@@ -139,5 +141,14 @@ public class YoungNewsApp extends Application {
 
             act.startActivity(intent,options.toBundle());
         }
+    }
+
+    public static Toast showToast(CharSequence str) {
+        if (null == toast){
+            toast = Toast.makeText(app,"Young",Toast.LENGTH_LONG);
+        }
+        toast.setText(str);
+        toast.show();
+        return toast;
     }
 }
