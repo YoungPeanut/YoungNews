@@ -27,6 +27,7 @@ public class NewsTabFragment extends BaseFragment {
     SlidingTabLayout sliding_tab;
     @Bind(R.id.viewpager)
     ViewPager viewPager;
+    NewsVPAdapter adapter;
 
     @Nullable
     @Override
@@ -52,7 +53,8 @@ public class NewsTabFragment extends BaseFragment {
             if (null == dataItem.children) return;
         }
 
-        viewPager.setAdapter(new NewsVPAdapter(getChildFragmentManager()));
+        adapter = new NewsVPAdapter(getChildFragmentManager());
+        viewPager.setAdapter(adapter);
         viewPager.setOffscreenPageLimit(viewPager.getAdapter().getCount());
         viewPager.setPageTransformer(true, new ViewPager.PageTransformer() {
             @Override

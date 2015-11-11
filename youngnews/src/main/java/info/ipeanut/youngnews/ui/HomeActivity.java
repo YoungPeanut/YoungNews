@@ -1,5 +1,6 @@
 package info.ipeanut.youngnews.ui;
 
+import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -31,7 +32,7 @@ import info.ipeanut.youngnews.ui.base.BaseActivity;
 import info.ipeanut.youngnews.ui.fragment.AlbumFragment;
 import info.ipeanut.youngnews.ui.fragment.InteractionFragment;
 import info.ipeanut.youngnews.ui.fragment.NewsTabFragment;
-import info.ipeanut.youngnews.ui.fragment.TopicFragment;
+import info.ipeanut.youngnews.ui.fragment.TopicTabFragment;
 import info.ipeanut.youngnews.ui.fragment.VoteFragment;
 import info.ipeanut.youngnews.utils.PreferenceUtils;
 
@@ -51,7 +52,7 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
 
     HomeRvendAdapter homeRvendAdapter;
     NewsTabFragment newsTabFragment;
-    TopicFragment topicFragment;
+    TopicTabFragment topicTabFragment;
     AlbumFragment albumFragment;
     InteractionFragment interactionFragment;
     VoteFragment voteFragment;
@@ -168,11 +169,11 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
 
     @Override
     public void onSelectedItemChanged(NewsAllDataBean.DataItem dataItem, int position) {
-        handleFragment(dataItem.id);
         home_drawer.closeDrawer(home_rv_end);
+        handleFragment(dataItem.id,dataItem);
     }
 
-    public void handleFragment(int id) {
+    public void handleFragment(int id,NewsAllDataBean.DataItem dataItem) {
         if (null != getSupportFragmentManager().getFragments()
                 && getSupportFragmentManager().getFragments().size() > 0) {
             for (Fragment f : getSupportFragmentManager().getFragments()) {
@@ -186,7 +187,9 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
 
                 break;
             case NewsAllDataBean.ID_TOPIC:
-                showFragment(topicFragment, TopicFragment.class);
+                Bundle arg = new Bundle();
+                arg.putString(YoungNewsApp.KEY_URL,dataItem.url);
+                showFragment(topicTabFragment, TopicTabFragment.class,arg);
 
                 break;
             case NewsAllDataBean.ID_ALBUM:
@@ -211,9 +214,12 @@ public class HomeActivity extends BaseActivity implements HomeRvendAdapter.OnSel
      * @param f
      */
     public void showFragment(Fragment f, Class cls) {
-
+        showFragment(f,cls,null);
+    }
+    public void showFragment(Fragment f, Class cls,Bundle arg) {
         if (null == f) {
             f = Fragment.instantiate(this, cls.getName());
+            if (null != arg) f.setArguments(arg);
             getSupportFragmentManager().beginTransaction()
                     .add(R.id.container, f, cls.getSimpleName())
                     .commitAllowingStateLoss();

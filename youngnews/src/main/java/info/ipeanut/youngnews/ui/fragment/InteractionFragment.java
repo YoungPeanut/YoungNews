@@ -12,7 +12,6 @@ import info.ipeanut.youngnews.ui.base.BaseFragment;
  * Created by chenshaosina on 15/11/4.
  */
 public class InteractionFragment extends BaseFragment {
-    View view;
 
     @Nullable
     @Override

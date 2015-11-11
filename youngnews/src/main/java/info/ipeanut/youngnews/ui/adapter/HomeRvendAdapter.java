@@ -7,7 +7,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
 
@@ -46,7 +45,6 @@ public class HomeRvendAdapter extends RecyclerView.Adapter<HomeRvendAdapter.Home
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(v.getContext(), "aaa", Toast.LENGTH_SHORT).show();
                 if (null != onSelectedItemChangedListener){
                     onSelectedItemChangedListener.onSelectedItemChanged(dataItem,position);
                 }

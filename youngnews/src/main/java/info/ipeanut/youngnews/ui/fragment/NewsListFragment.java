@@ -51,6 +51,8 @@ import info.ipeanut.youngnews.utils.PreferenceUtils;
  * 12 页面跳转 过渡动画
  * 13 真机 第一次打开App总是请求失败
  * 14 webviewloading进度条
+ * 15  Bundle savedInstanceState
+ * 16 onConfigChange()  当前在TopicTabFragment, 把模拟器从飞行模式回到正常模式，Fragment错乱，NewTabFragment显示出来了
  * Created by chenshao on 15/11/5.
  */
 public class NewsListFragment extends BaseFragment {
