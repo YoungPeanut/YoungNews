@@ -2,6 +2,7 @@ package info.ipeanut.youngnews.ui.fragment;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
@@ -13,6 +14,9 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import butterknife.Bind;
 import info.ipeanut.youngnews.R;
@@ -34,6 +38,8 @@ public class TopicTabFragment extends BaseFragment {
     StringRequest request;
     Gson gson;
     TopicTabAdapter adapter;
+    private List<TopicTabBean.TopicItem> topic;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -44,7 +50,6 @@ public class TopicTabFragment extends BaseFragment {
     @Override
     public void onDestroyView() {
         if (null != request && !request.isCanceled()) request.cancel();
-
         super.onDestroyView();
     }
 
@@ -63,6 +68,12 @@ public class TopicTabFragment extends BaseFragment {
 
     private void preReq() {
         gson = new Gson();
+
+
+        recyclerview.setLayoutManager(new LinearLayoutManager(getActivity()));
+        topic = new ArrayList<>();
+        adapter = new TopicTabAdapter(getActivity(),topic);
+        recyclerview.setAdapter(adapter);
     }
 
     private void requestData() {
@@ -71,8 +82,7 @@ public class TopicTabFragment extends BaseFragment {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        YoungNewsApp.showToast("topic--suc");
-                        topicTabBean = gson.fromJson(response,TopicTabBean.class);
+                        handleResponse(response);
                     }
                 },
                 new Response.ErrorListener() {
@@ -85,5 +95,19 @@ public class TopicTabFragment extends BaseFragment {
         );
         YoungNewsApp.getRequestQueue().add(request);
 
+    }
+
+    void handleResponse( String response){
+        topicTabBean = gson.fromJson(response,TopicTabBean.class);
+        topic.clear();
+        if (topicTabBean != null && topicTabBean.data != null){
+            topic.addAll(topicTabBean.data.topic);
+        }
+        //ttest
+        topic.addAll(topic);
+        topic.addAll(topic);
+        topic.addAll(topic);
+        topic.addAll(topic);
+        adapter.notifyDataSetChanged();
     }
 }
