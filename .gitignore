@@ -1,3 +1,4 @@
+/captures
 # built application files
 *.apk
 *.ap_
@@ -15,7 +16,6 @@ build/
 
 # Gradle files
 .gradle/
-build/
 subProjects/facebook/build
 
 # Intellij project files
@@ -25,8 +25,6 @@ gen-external-apklibs/
 *.iml
 
 # Intellij
-.idea/
-*.iml
 *.iws
 
 # Local configuration file (sdk path, etc)
